@@ -1,6 +1,7 @@
 package lesson01.exercise;
 
 import io.jaegertracing.Configuration;
+import io.jaegertracing.internal.JaegerTracer;
 
 import io.opentracing.Tracer;
 import io.opentracing.Span;
@@ -17,7 +18,7 @@ public class Hello {
     }
 
     private void sayHello(String helloTo) {
-        Span span = tracer.buildSpan("say-hello").startManual();
+        Span span = tracer.buildSpan("say-hello").start();
 
         String helloStr = String.format("Hello, %s!", helloTo);
         System.out.println(helloStr);
@@ -30,7 +31,10 @@ public class Hello {
             throw new IllegalArgumentException("Expecting one argument");
         }
         String helloTo = args[0];
-        new Hello(initTracer("hello-world")).sayHello(helloTo);
+        Tracer tracer = initTracer("hello-world");
+        new Hello(tracer).sayHello(helloTo);
+        // If we don't close the tracer, it doesn't flush the span out to the server.
+        ((JaegerTracer) tracer).close();
     }
 
 }
